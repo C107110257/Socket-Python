@@ -1,0 +1,1 @@
+robocopy . "\\192.168.0.240\project\Ken_Lin\Socketpy" /E /PURGE /XO
