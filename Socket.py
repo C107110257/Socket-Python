@@ -1,8 +1,8 @@
 from func.args_parse import get_args
-from func.portocals.TCP_Client import run_client
-from func.portocals.TCP_Server import run_server
-from func.portocals.UDP_Client import run_udp_client
-from func.portocals.UDP_Server import run_udp_server
+from func.protocols.TCP_Client import run_client
+from func.protocols.TCP_Server import run_server
+from func.protocols.UDP_Client import run_udp_client
+from func.protocols.UDP_Server import run_udp_server
 
 
 def main():
