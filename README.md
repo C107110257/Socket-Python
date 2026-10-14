@@ -1,127 +1,142 @@
 # Socket-Python
 
-一個以 Python 標準函式庫實作的互動式 TCP/UDP Socket 命令列工具。啟動伺服器與客戶端後，可在終端機輸入文字並互相傳送。
+An interactive TCP/UDP socket command-line tool built with the Python standard library. Start a server and a client, then type text in the terminal to send messages back and forth.
 
-## 功能
+![TCP (IPv6) and UDP (IPv4) demo](docs/demo.png)
 
-- 支援 TCP 與 UDP。
-- 可選擇伺服器或客戶端模式。
-- 支援 IPv4 與 IPv6 位址。
-- 預設使用連接埠 `8787`。
-- 不需要安裝第三方 Python 套件。
+## Features
 
-## 系統需求
+- Supports both TCP and UDP.
+- Runs in either server or client mode.
+- Supports IPv4 and IPv6 addresses; the client detects the address family from the IP you provide.
+- Uses port `8787` by default.
+- No third-party Python packages required.
+
+## Requirements
 
 - Python 3
-- 支援 IPv6 的作業系統（伺服器以 IPv6 通配位址監聽，並嘗試同時接受 IPv4 連線）
+- An operating system with IPv6 support (the server listens on the IPv6 wildcard address `::` with `IPV6_V6ONLY` disabled, so a single port accepts both IPv4 and IPv6 connections)
 
-## 使用方式
+## Usage
 
-請在專案根目錄開啟終端機執行：
+Run the following from the project root:
 
 ```bash
-python3 Socket.py [模式] [選項]
+python3 Socket.py [mode] [options]
 ```
 
-> Windows 可改用 `py` 、 `python`或 `python3`；macOS / Linux 通常使用 `python3`。
+> On Windows you can use `py`, `python`, or `python3`; on macOS / Linux, `python3` is typical.
 
-### 伺服器
+### Server
 
-以預設 TCP 連接埠 `8787` 啟動伺服器：
+Start a server on the default TCP port `8787`:
 
 ```bash
 python3 Socket.py --server
 ```
 
-啟動 UDP 伺服器：
+Start a UDP server:
 
 ```bash
 python3 Socket.py --server --type udp
 ```
 
-自訂連接埠：
+Use a custom port:
 
 ```bash
 python3 Socket.py --server --type tcp --port 9000
 ```
 
-### 客戶端
+> The server always listens on `::`; there is currently no option to choose the listening address.
 
-連線到本機的 TCP 伺服器：
+### Client
+
+Connect to a TCP server on the local machine:
 
 ```bash
 python3 Socket.py --client 127.0.0.1
 ```
 
-連線到指定 IPv4 位址的 UDP 伺服器：
+Connect to a UDP server at a specific IPv4 address:
 
 ```bash
 python3 Socket.py --client 192.168.1.20 --type udp
 ```
 
-自訂連接埠或使用 IPv6 位址：
+Use a custom port or an IPv6 address:
 
 ```bash
 python3 Socket.py --client 2001:db8::1 --type tcp --port 9000
 ```
 
-> 客戶端參數需提供 IP 位址；目前不支援以主機名稱（例如 `localhost` 或網域名稱）連線。
+> The client requires an IP address. Hostnames (such as `localhost` or domain names) are not supported; passing a non-IP string produces an `Invalid IP address` error.
 
-### 參數
+### Options
 
-| 參數 | 說明 |
+| Option | Description |
 | --- | --- |
-| `-s`, `--server` | 以伺服器模式執行 |
-| `-c IP`, `--client IP` | 以客戶端模式執行，並指定伺服器 IP 位址 |
-| `-t`, `--type` | 通訊協定：`tcp` 或 `udp`，預設為 `tcp` |
-| `-p`, `--port` | 連接埠，預設為 `8787` |
-| `-v`, `--verbose` | 詳細模式選項（目前尚未有額外輸出，見「注意事項」） |
-| `-h`, `--help` | 顯示說明 |
+| `-s`, `--server` | Run in server mode |
+| `-c IP`, `--client IP` | Run in client mode and specify the server IP address |
+| `-t`, `--type` | Protocol: `tcp` or `udp` (default: `tcp`) |
+| `-p`, `--port` | Port number (default: `8787`) |
+| `-v`, `--verbose` | Verbose mode flag (currently produces no extra output; see Notes) |
+| `-h`, `--help` | Show help |
 
-伺服器與客戶端模式必須擇一。查看命令列說明：
+Exactly one of server mode or client mode must be chosen. To see the command-line help:
 
 ```bash
 python3 Socket.py --help
 ```
 
-## 互動操作
+## Interactive Use
 
-1. 在一個終端機啟動伺服器。
-2. 在另一個終端機使用相同的協定與連接埠啟動客戶端。
-3. 在任一端的提示符後輸入文字並按 Enter，即可傳送訊息。
-4. 輸入 `exit` 可結束該端的互動程序。
+1. Start the server in one terminal.
+2. In another terminal, start the client with the same protocol and port.
+3. Type text at the prompt on either side and press Enter to send it.
+4. Type `exit` to quit that side.
+5. If the peer has disconnected (TCP prints `[INFO] ... disconnected`), the input prompt is still waiting, so press Enter once more to exit the program.
 
-若要從其他電腦連線，請使用伺服器可到達的 IP 位址，並確認防火牆允許該連接埠的 TCP 或 UDP 流量。
+To connect from another machine, use an IP address the server is reachable at, and make sure the firewall allows TCP or UDP traffic on the chosen port.
 
-## 專案結構
+## Demo
+
+In the screenshot above, the left terminal is the server (`192.168.1.12`) and the right terminal is the client (`192.168.0.249`). It shows two scenarios in order:
+
+1. **TCP over IPv6**: the server starts with `-s -t tcp` and the client connects with `-c <server IPv6 address> -t tcp`. After exchanging messages, the server types `exit`, and the client prints `From Server disconnected` and exits.
+2. **UDP over IPv4**: the server starts with `-s -t udp` and the client sends messages with `-c 192.168.1.12 -t udp`. Because the server uses a dual-stack IPv6 socket, the IPv4 client's address is displayed in IPv4-mapped form, for example `::ffff:192.168.0.249`.
+
+## Project Structure
 
 ```text
 .
-├── Socket.py                 # 命令列入口
-├── README.md                 # 專案說明
-├── sync.sh                   # 同步腳本（Linux / macOS）
-├── w_sync.cmd                # 同步腳本（Windows）
+├── Socket.py                 # Command-line entry point
+├── README.md                 # Project documentation
+├── sync.sh                   # Sync script (Linux / macOS)
+├── w_sync.cmd                # Sync script (Windows)
+├── docs/
+│   └── demo.png              # Demo screenshot used in this README
 └── func/
-    ├── args_parse.py         # 命令列參數
-    ├── config.py             # 預設連接埠與提示字
+    ├── args_parse.py         # Command-line argument parsing
+    ├── config.py             # Default port and prompt strings
     ├── ip_handler/
-    │   └── sk_ip.py          # IP 位址與通訊協定家族判斷
-    ├── protocols/            # TCP/UDP 客戶端與伺服器
+    │   └── sk_ip.py          # IP address and address-family detection
+    ├── protocols/            # TCP/UDP clients and servers
     │   ├── TCP_Client.py
     │   ├── TCP_Server.py
     │   ├── UDP_Client.py
     │   └── UDP_Server.py
-    ├── send_recv/            # 訊息收發
+    ├── send_recv/            # Message sending and receiving
     │   ├── sk_recv.py
     │   └── sk_send.py
-    └── ths/                  # 接收訊息的執行緒
+    └── ths/                  # Receiver threads
         ├── sk_thread_tcp.py
         └── sk_thread_udp.py
 ```
 
-## 注意事項
+## Notes
 
-- TCP 伺服器目前只接受一個客戶端連線；若要接受其他客戶端，需重新啟動伺服器。
-- UDP 伺服器會記錄最近收到封包的客戶端，伺服器端輸入的訊息會回覆給該客戶端。
-- TCP 是串流協定，沒有內建訊息邊界；大量或快速傳送時，一次接收的資料可能不是恰好一筆輸入訊息。
-- `--verbose` 目前僅作為命令列選項存在，程式尚未依此切換額外的詳細輸出。
+- The TCP server currently accepts a single client connection. When that client disconnects, the server exits as well; restart it to accept another client.
+- UDP is connectionless. The `UDP connected to ...` message printed by the client is only informational and does not mean the server is running or reachable.
+- The UDP server remembers the most recent client that sent it a packet and replies to that client. Until the first client packet arrives, anything typed on the server side is not sent, and no warning is shown.
+- The receive buffer is 1024 bytes per read. TCP is a stream protocol with no built-in message boundaries, so under heavy or rapid sending a single read may not match exactly one typed message. For UDP, packets larger than the buffer may be truncated or cause a receive error.
+- `--verbose` currently exists only as a command-line option; the program does not yet produce any additional verbose output.
